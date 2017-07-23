@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-double **multiplyMatrix(int number, double **matrix1, double **matrix2, double **matrix3);
+double multiplyMatrix(int number, double **matrix1, double **matrix2, double **matrix3);
 
 void fillValues(int number, double **matrix1, double **matrix2);
 
@@ -12,12 +12,12 @@ void runApp(int number);
 
 int main() {
 
-
     srand(time(NULL));  // get random number
+    omp_set_num_threads(8);
+
     for (int i = 200; i <= 2000; i=i+200) {
         runApp(i);
     }
-
     return 0;
 }
 
@@ -37,18 +37,17 @@ void runApp(int number) {
         matrix3[i] = (double *) malloc(sizeof(double) * number);
     }
 
-    omp_set_num_threads(8);
     fflush(stdout);
     fillValues(number, matrix1, matrix2);
 
 
     double sum;
     for (int i=0;i<20;i++) {
-        double startTime = omp_get_wtime();
-        multiplyMatrix(number, matrix1, matrix2, matrix3);
-        double endTime = omp_get_wtime();
-        sum = sum +(endTime - startTime);
+
+        sum += multiplyMatrix(number, matrix1, matrix2, matrix3);
+
     }
+
     printf("Average for n = %d is %f \n",number,sum/20);
 }
 
@@ -61,12 +60,14 @@ void fillValues(int number, double **matrix1, double **matrix2) {
             matrix2[i][j] = (float) rand() / (float) (RAND_MAX / 100);
         }
     }
-
 }
 
 
-double **multiplyMatrix(int number, double **matrix1, double **matrix2, double **matrix3) {
+double multiplyMatrix(int number, double **matrix1, double **matrix2, double **matrix3) {
     // Multiplication
+
+    double startTime = omp_get_wtime();
+
     #pragma omp parallel for
     for (int i = 0; i < number; i++) {
         for (int j = 0; j < number; j++) {
@@ -78,5 +79,8 @@ double **multiplyMatrix(int number, double **matrix1, double **matrix2, double *
             matrix3[i][j] = count;
         }
     }
-    return matrix3;
+
+    double endTime = omp_get_wtime();
+
+    return (endTime - startTime);
 }
