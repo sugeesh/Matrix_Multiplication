@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-double multiplyMatrix(int number, double **matrix1, double **matrix2, double **matrix3);
+double multiplyMatrix(int number, double **matrix1, double **matrix2);
 
 void fillValues(int number, double **matrix1, double **matrix2);
 
@@ -31,12 +31,6 @@ void runApp(int number) {
     for (int i = 0; i < number; i++)
         matrix2[i] = (double *) malloc(sizeof(double) * number);
 
-    // Output matrix
-    double **matrix3 = (double **) malloc(sizeof(double *) * number);
-    for (int i = 0; i < number; i++) {
-        matrix3[i] = (double *) malloc(sizeof(double) * number);
-    }
-
     fflush(stdout);
     fillValues(number, matrix1, matrix2);
 
@@ -44,7 +38,7 @@ void runApp(int number) {
     double sum;
     for (int i=0;i<20;i++) {
 
-        sum += multiplyMatrix(number, matrix1, matrix2, matrix3);
+        sum += multiplyMatrix(number, matrix1, matrix2);
 
     }
 
@@ -63,7 +57,14 @@ void fillValues(int number, double **matrix1, double **matrix2) {
 }
 
 
-double multiplyMatrix(int number, double **matrix1, double **matrix2, double **matrix3) {
+double multiplyMatrix(int number, double **matrix1, double **matrix2) {
+    // Output matrix
+    double **matrix3 = (double **) malloc(sizeof(double *) * number);
+    for (int i = 0; i < number; i++) {
+        matrix3[i] = (double *) malloc(sizeof(double) * number);
+    }
+
+
     // Multiplication
 
     double startTime = omp_get_wtime();
