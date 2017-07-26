@@ -13,9 +13,9 @@ void runApp(int number);
 int main() {
 
     srand(time(NULL));  // get random number
-    omp_set_num_threads(8);
 
-    for (int i = 200; i <= 2000; i=i+200) {
+    omp_set_num_threads(8);
+    for (int i = 200; i <= 2000; i = i + 200) {
         runApp(i);
     }
 
@@ -36,13 +36,13 @@ void runApp(int number) {
     fillValues(number, matrix1, matrix2);
 
 
-    double sum;
-    for (int i=0;i<100;i++) {
+    double sum = 0;
+    for (int i = 0; i < 20; i++) {
 
         sum += multiplyMatrix(number, matrix1, matrix2);
 
     }
-    printf("Average for n = %d is %f \n",number,sum/100);
+    printf("Average for n = %d is %f \n", number, sum / 20);
 }
 
 
@@ -50,8 +50,8 @@ void fillValues(int number, double **matrix1, double **matrix2) {
     // Fill values
     for (int i = 0; i < number; i++) {
         for (int j = 0; j < number; j++) {
-            matrix1[i][j] = (float) rand() / (float) (RAND_MAX / 100);
-            matrix2[i][j] = (float) rand() / (float) (RAND_MAX / 100);
+            matrix1[i][j] = (float) rand() / (float) (RAND_MAX / 10000);
+            matrix2[i][j] = (float) rand() / (float) (RAND_MAX / 10000);
         }
     }
 
@@ -60,24 +60,21 @@ void fillValues(int number, double **matrix1, double **matrix2) {
 
 double multiplyMatrix(int number, double **matrix1, double **matrix2) {
     // Output matrix
+
     double **matrix3 = (double **) malloc(sizeof(double *) * number);
     for (int i = 0; i < number; i++) {
         matrix3[i] = (double *) malloc(sizeof(double) * number);
     }
 
-
     double startTime = omp_get_wtime();
 
-    // Multiplication
-    double **matrix4 = (double **) malloc(sizeof(double *) * number);
+#pragma omp parallel for
     for (int i = 0; i < number; i++) {
-        matrix4[i] = (double *) malloc(sizeof(double) * number);
-    }
-    #pragma omp parallel for
-    for (int i = 0; i < number; i++) {
-        #pragma omp parallel for
+#pragma omp parallel for
         for (int j = 0; j < number; j++) {
-            matrix4[i][j] = matrix2[j][i];
+            double t = matrix2[i][j];
+            matrix2[i][j] = matrix2[j][i];
+            matrix2[j][i] = t;
         }
     }
 
@@ -85,9 +82,13 @@ double multiplyMatrix(int number, double **matrix1, double **matrix2) {
     for (int i = 0; i < number; i++) {
         for (int j = 0; j < number; j++) {
             double count = 0;
-
-            for (int m = 0; m < number; m++) {
-                count += matrix1[i][m] * matrix4[j][m];
+            int m = 0;
+            for (m = 0; m < number - m; m++) {
+                count += matrix1[i][m] * matrix2[j][m] +
+                         matrix1[i][number - 1 - m] * matrix2[j][number - 1 - m];
+            }
+            if (m == number - 1 - m) {
+                count += matrix1[i][m] * matrix2[j][m];
             }
             matrix3[i][j] = count;
         }
